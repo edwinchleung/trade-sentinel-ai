@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.env.local
+.env.*.local
+
+# Build
+.next/
+out/
+dist/
+build/
+*.egg-info/
+.eggs/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Test / coverage
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# App
+*.db
+.cache/
+apps/api/.cache/
+
+# Runtime / cached API data (regenerate via scripts or first-run fetch)
+apps/api/data/
+apps/api/src/data/
+
+# Vercel
+.vercel

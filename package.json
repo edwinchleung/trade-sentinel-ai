@@ -1,0 +1,11 @@
+{
+  "name": "trade-sentinel-ai",
+  "private": true,
+  "scripts": {
+    "dev:web": "pnpm --filter web dev",
+    "dev:api": "cd apps/api && uv run uvicorn trade_sentinel_api.main:app --reload --host 0.0.0.0 --port 8000",
+    "build:web": "pnpm --filter web build",
+    "lint:web": "pnpm --filter web lint",
+    "test:api": "cd apps/api && uv run pytest"
+  }
+}

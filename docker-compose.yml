@@ -1,0 +1,60 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-tradesentinel}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tradesentinel}
+      POSTGRES_DB: ${POSTGRES_DB:-tradesentinel}
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tradesentinel} -d ${POSTGRES_DB:-tradesentinel}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    ports:
+      - "${API_PORT:-8000}:8000"
+    env_file:
+      - .env
+    environment:
+      - CORS_ORIGINS=http://localhost:3000
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-tradesentinel}:${POSTGRES_PASSWORD:-tradesentinel}@postgres:5432/${POSTGRES_DB:-tradesentinel}
+    volumes:
+      - ./apps/api/src:/app/src
+      - ./apps/api/prompts:/app/prompts
+      - ./apps/api/data:/app/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=5)\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    command: uv run uvicorn trade_sentinel_api.main:app --host 0.0.0.0 --port 8000 --reload
+
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:${API_PORT:-8000}
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
